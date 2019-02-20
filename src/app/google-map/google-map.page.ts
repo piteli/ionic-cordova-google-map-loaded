@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { GoogleMaps, GoogleMap, Environment, GoogleMapOptions, GoogleMapsEvent, Marker } from "@ionic-native/google-maps/ngx";
+import { Geolocation } from '@ionic-native/geolocation/ngx';
 
 @Component({
   selector: 'app-google-map',
@@ -10,8 +11,7 @@ import { GoogleMaps, GoogleMap, Environment, GoogleMapOptions, GoogleMapsEvent, 
 export class GoogleMapPage implements OnInit {
 
   map: GoogleMap;
-  constructor(private platform: Platform){
-
+  constructor(private platform: Platform, private geolocation: Geolocation){
   }
 
   async ngOnInit(){
@@ -38,13 +38,41 @@ export class GoogleMapPage implements OnInit {
        }
     };
     this.map = GoogleMaps.create('map', mapOptions);
+    this.loadGeoLocation();
+  }
 
+  loadGeoLocation(){
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0
+    };
+
+    this.geolocation.getCurrentPosition(options).then((resp) => {
+     // resp.coords.latitude
+     // resp.coords.longitude
+     console.log("hopefully it is");
+     console.log(resp);
+     // this.locateUserWithMarker(resp);
+
+    }).catch((error) => {
+      console.log('Error getting location', error);
+    });
+
+    let watch = this.geolocation.watchPosition();
+    watch.subscribe((data) => {
+      console.log("here is the data watch");
+      console.log(data);
+    });
+  }
+
+  locateUserWithMarker(resp){
     let marker: Marker = this.map.addMarkerSync({
-      title: 'Ionic',
-      snippet: 'teste',
+      title: 'Hi there',
+      snippet: 'Im marker man :D',
       position: {
-        lat: 43.0741904,
-        lng: -89.3809802
+        lat: resp.coords.latitude,
+        lng: resp.coords.longitude
       }
     });
     marker.on(GoogleMapsEvent.MARKER_CLICK).subscribe(() => {
